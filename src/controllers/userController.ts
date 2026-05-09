@@ -1,9 +1,40 @@
 import { Request, Response } from "express";
 import * as userService from "../services/userService";
+import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
+
+export const login = async (req: Request, res: Response) => {
+	const { username, password } = req.body;
+
+	if (!username || !password) {
+		return res.status(400).json({ error: "Username and password are required" });
+	}
+
+	try {
+		const user = await userService.validateUser(username);
+
+		if (!user) {
+			return res.status(401).json({ error: "Invalid credentials" });
+		}
+
+		const isPasswordValid = await bcrypt.compare(password, user.password);
+		if (!isPasswordValid) {
+			return res.status(401).json({ error: "Invalid credentials" });
+		}
+
+		const token = jwt.sign(
+			{ id: user.id, username: user.username },
+			process.env.JWT_SECRET || "secret",
+			{ expiresIn: "10m" },
+		);
+
+		res.status(200).json({ token });
+	} catch (error) {
+		res.status(500).json({ error: "Internal Server Error" });
+	}
+};
 
 export const register = async (req: Request, res: Response) => {
-	console.log({ 5: req });
-
 	if (!req.body) {
 		return res.status(400).json({ error: "Request body is missing" });
 	}
@@ -34,8 +65,6 @@ export const register = async (req: Request, res: Response) => {
 };
 
 export const getUsers = async (req: Request, res: Response) => {
-	console.log({ 31: req });
-
 	try {
 		const users = await userService.getAllUsers();
 		res.json(users);

@@ -11,4 +11,9 @@ module.exports = {
   moduleNameMapper: {
     '^(\\.*)\\.js$': '$1',
   },
+  transformIgnorePatterns: [
+    "node_modules/(?!(uuid|dotenv)/)"
+  ],
+  moduleDirectories: ['node_modules', 'src'],
+  testPathIgnorePatterns: ["/node_modules/"]
 };

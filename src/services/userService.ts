@@ -1,13 +1,13 @@
 import { db } from "../config/db";
 import bcrypt from "bcrypt";
-import { v4 as uuidv4 } from "uuid";
+const uuid = require("uuid");
 
 export const createUser = async (userData: any) => {
 	console.log({ userData });
 
 	const { username, email, password } = userData;
 	const hashedPassword = await bcrypt.hash(password, 10);
-	const id = uuidv4();
+	const id = uuid.v4();
 
 	console.log({ hashedPassword, id });
 
@@ -27,4 +27,9 @@ export const getAllUsers = async () => {
 
 export const deleteAllUsers = async () => {
 	await db.none("TRUNCATE TABLE users RESTART IDENTITY");
+};
+
+export const validateUser = async (username: string) => {
+    const user = await db.oneOrNone('SELECT * FROM users WHERE username = $1', [username]);
+    return user;
 };
